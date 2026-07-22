@@ -3,9 +3,9 @@ import { AnimatePresence, motion } from 'framer-motion'
 import Hero from '../components/Hero'
 import UploadCard from '../components/UploadCard'
 import ProgressTimeline from '../components/ProgressTimeline'
-import CandidateCard from '../components/CandidateCard'
-import RepositoryCard from '../components/RepositoryCard'
-import RecommendationCard from '../components/RecommendationCard'
+import RepositoryOverviewCard from '../components/RepositoryOverviewCard'
+import KeyIssuesCard from '../components/KeyIssuesCard'
+import RecommendationsComplianceCard from '../components/RecommendationsComplianceCard'
 import LoadingOverlay from '../components/LoadingOverlay'
 import { useAnalysis } from '../hooks/useAnalysis'
 import { useToast } from '../hooks/useToast'
@@ -21,6 +21,7 @@ export default function HomePage() {
   const { toasts, push, dismiss } = useToast()
 
   const isAnalyzing = phase === 'running'
+  const feedback = result?.analysis.review_feedback
 
   useEffect(() => {
     if (phase === 'error' && error) {
@@ -30,7 +31,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (phase === 'success') {
-      push('Analysis complete — recommendation is ready.', 'success')
+      push('Analysis complete — review is ready.', 'success')
       window.setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }, 150)
@@ -85,7 +86,7 @@ export default function HomePage() {
         )}
       </AnimatePresence>
 
-      {phase === 'success' && result && (
+      {phase === 'success' && result && feedback && (
         <section
           ref={resultsRef}
           id="results"
@@ -96,28 +97,27 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center gap-2 text-center"
           >
-            <h2 className="text-2xl font-bold text-white md:text-3xl">Results Dashboard</h2>
+            <h2 className="text-2xl font-bold text-white md:text-3xl">Review Dashboard</h2>
             <p className="text-sm text-slate-400">
-              Here&apos;s how {result.candidate.githubUsername}&apos;s repositories stack up.
+              Here&apos;s how {result.repository} stacks up against the job description.
             </p>
           </motion.div>
 
-          <CandidateCard candidate={result.candidate} />
+          <RepositoryOverviewCard
+            repository={result.repository}
+            overview={feedback.repository_overview}
+          />
 
-          <div className="grid gap-6 md:grid-cols-2">
-            {result.repositories.map((repo, i) => (
-              <RepositoryCard key={repo.id} repository={repo} index={i} />
-            ))}
-          </div>
+          <KeyIssuesCard issues={feedback.key_issues} />
 
-          <RecommendationCard
-            overallScore={result.overallScore}
-            recommendation={result.recommendation}
+          <RecommendationsComplianceCard
+            recommendations={feedback.recommendations}
+            compliance={feedback.compliance_check}
           />
 
           <div className="flex justify-center pt-4">
             <button type="button" onClick={handleStartOver} className="btn-secondary">
-              Analyze another candidate
+              Analyze another repository
             </button>
           </div>
         </section>

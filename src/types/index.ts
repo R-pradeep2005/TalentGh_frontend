@@ -1,41 +1,42 @@
 // Core domain types for the Talent Acquisition GitHub Analyzer
 
-export type Recommendation =
-  | 'Strong Hire'
-  | 'Hire'
-  | 'Consider'
-  | 'Needs Improvement'
+export type Severity = 'Low' | 'Medium' | 'High' | 'Critical'
 
-export interface ScoreBreakdown {
-  codeQuality: number
-  readmeQuality: number
-  errorHandling: number
-  technicalWriting: number
-  jobRelevance: number
-}
-
-export interface Repository {
-  id: string
-  name: string
+export interface KeyIssue {
+  issue: string
   description: string
-  primaryLanguage: string
-  stars: number
-  topics: string[]
-  overallScore: number
-  scores: ScoreBreakdown
+  severity: Severity
 }
 
-export interface Candidate {
-  resumeFilename: string
-  githubUsername: string
-  repositoryCount: number
+export interface RecommendationItem {
+  recommendation: string
+  description: string
+}
+
+export interface ComplianceCheck {
+  java_proficiency: string
+  spring_framework: string
+  j2ee: string
+  relational_databases: string
+  maven_gradle: string
+  git: string
+  ood_principles: string
+  agile_methodologies: string
+  [key: string]: string
+}
+
+export interface ReviewFeedback {
+  repository_overview: string
+  key_issues: KeyIssue[]
+  recommendations: RecommendationItem[]
+  compliance_check: ComplianceCheck
 }
 
 export interface AnalysisResult {
-  candidate: Candidate
-  repositories: Repository[]
-  overallScore: number
-  recommendation: Recommendation
+  repository: string
+  analysis: {
+    review_feedback: ReviewFeedback
+  }
 }
 
 export type ProgressStageStatus = 'pending' | 'active' | 'complete'
@@ -60,9 +61,4 @@ export interface ToastMessage {
   message: string
 }
 
-export interface AnalyzeResponse {
-  candidate: Candidate
-  repositories: Repository[]
-  overallScore: number
-  recommendation: Recommendation
-}
+export type AnalyzeResponse = AnalysisResult

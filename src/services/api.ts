@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios'
 import type { AnalyzeResponse } from '../types'
+import { normalizeAnalysisResult } from './normalize'
 
 // Base URL for the backend. Override with VITE_API_BASE_URL at build time.
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
@@ -34,7 +35,7 @@ export async function analyzeCandidate({
   formData.append('job_description', jobDescription)
 
   try {
-    const { data } = await client.post<AnalyzeResponse>('/analyze', formData, {
+    const { data } = await client.post<unknown>('/analyze', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: (event) => {
         if (onUploadProgress && event.total) {
@@ -42,7 +43,9 @@ export async function analyzeCandidate({
         }
       },
     })
-    return data
+    // The backend's response is LLM-generated and its field names have been
+    // observed to drift between calls. Normalize before handing it to the UI.
+    return normalizeAnalysisResult(data)
   } catch (err) {
     const axiosErr = err as AxiosError<{ message?: string; detail?: string }>
     if (axiosErr.response) {
