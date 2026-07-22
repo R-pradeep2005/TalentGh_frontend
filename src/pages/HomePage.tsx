@@ -3,13 +3,11 @@ import { AnimatePresence, motion } from 'framer-motion'
 import Hero from '../components/Hero'
 import UploadCard from '../components/UploadCard'
 import ProgressTimeline from '../components/ProgressTimeline'
-import RepositoryOverviewCard from '../components/RepositoryOverviewCard'
-import KeyIssuesCard from '../components/KeyIssuesCard'
-import RecommendationsComplianceCard from '../components/RecommendationsComplianceCard'
 import LoadingOverlay from '../components/LoadingOverlay'
 import { useAnalysis } from '../hooks/useAnalysis'
 import { useToast } from '../hooks/useToast'
 import ToastContainer from '../components/Toast'
+import AnalysisReportCard from '../components/AnalysisReportCard'
 
 export default function HomePage() {
   const [resume, setResume] = useState<File | null>(null)
@@ -21,7 +19,7 @@ export default function HomePage() {
   const { toasts, push, dismiss } = useToast()
 
   const isAnalyzing = phase === 'running'
-  const feedback = result?.analysis.review_feedback
+  
 
   useEffect(() => {
     if (phase === 'error' && error) {
@@ -86,7 +84,7 @@ export default function HomePage() {
         )}
       </AnimatePresence>
 
-      {phase === 'success' && result && feedback && (
+      {phase === 'success' && result  && (
         <section
           ref={resultsRef}
           id="results"
@@ -103,16 +101,9 @@ export default function HomePage() {
             </p>
           </motion.div>
 
-          <RepositoryOverviewCard
+          <AnalysisReportCard
             repository={result.repository}
-            overview={feedback.repository_overview}
-          />
-
-          <KeyIssuesCard issues={feedback.key_issues} />
-
-          <RecommendationsComplianceCard
-            recommendations={feedback.recommendations}
-            compliance={feedback.compliance_check}
+            analysis={result.analysis}
           />
 
           <div className="flex justify-center pt-4">

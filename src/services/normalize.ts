@@ -1,8 +1,8 @@
-import type { AnalysisResult, ComplianceCheck, KeyIssue, RecommendationItem } from '../types'
+import type { AnalysisResult, EvidenceItem } from '../types'
 
 // The backend's /analyze response is LLM-generated and its field names have been
-// observed to drift between calls (e.g. `repository_overview` vs `summary`,
-// `recommendation` vs `action`, `compliance_check` vs `compliance_with_job_description`).
+// observed to drift between calls (e.g. `matching_skills` vs `skills_matched`,
+// `evidence` items using `file`/`path` or `reason`/`explanation`).
 // This normalizer maps any known variant onto the canonical shape the UI relies on,
 // so a naming drift degrades gracefully instead of crashing the render tree.
 // The real fix is constraining the backend's LLM call to a strict output schema —
@@ -12,44 +12,36 @@ function asArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : []
 }
 
-function normalizeIssues(raw: unknown): KeyIssue[] {
-  return asArray<Record<string, unknown>>(raw).map((item) => ({
-    issue: String(item.issue ?? item.title ?? 'Untitled issue'),
-    description: String(item.description ?? ''),
-    severity: (item.severity as KeyIssue['severity']) ?? 'Medium',
-  }))
+function asStringArray(value: unknown): string[] {
+  return asArray<unknown>(value).map((v) => String(v))
 }
 
-function normalizeRecommendations(raw: unknown): RecommendationItem[] {
-  return asArray<Record<string, unknown>>(raw).map((item) => ({
-    recommendation: String(item.recommendation ?? item.action ?? item.title ?? 'Recommendation'),
-    description: String(item.description ?? ''),
-  }))
+function normalizeScore(value: unknown): number {
+  const n = Number(value)
+  if (Number.isNaN(n)) return 0
+  return Math.max(0, Math.min(100, n))
 }
 
-function normalizeCompliance(raw: unknown): ComplianceCheck {
-  if (!raw || typeof raw !== 'object') return {} as ComplianceCheck
-  const entries = Object.entries(raw as Record<string, unknown>).map(([k, v]) => [
-    k,
-    String(v ?? ''),
-  ])
-  return Object.fromEntries(entries) as ComplianceCheck
+function normalizeEvidence(raw: unknown): EvidenceItem[] {
+  return asArray<Record<string, unknown>>(raw).map((item) => ({
+    file: String(item.file ?? item.path ?? item.filename ?? 'Unknown file'),
+    reason: String(item.reason ?? item.explanation ?? item.description ?? ''),
+  }))
 }
 
 export function normalizeAnalysisResult(data: any): AnalysisResult {
-  const feedback = data?.analysis?.review_feedback ?? {}
+  const analysis = data?.analysis ?? {}
 
   return {
     repository: String(data?.repository ?? 'Unknown repository'),
     analysis: {
-      review_feedback: {
-        repository_overview: String(feedback.repository_overview ?? feedback.summary ?? ''),
-        key_issues: normalizeIssues(feedback.key_issues),
-        recommendations: normalizeRecommendations(feedback.recommendations),
-        compliance_check: normalizeCompliance(
-          feedback.compliance_check ?? feedback.compliance_with_job_description,
-        ),
-      },
+      score: normalizeScore(analysis.score ?? analysis.match_score),
+      matching_skills: asStringArray(analysis.matching_skills ?? analysis.skills_matched),
+      missing_skills: asStringArray(analysis.missing_skills ?? analysis.skills_missing),
+      strengths: asStringArray(analysis.strengths),
+      weaknesses: asStringArray(analysis.weaknesses),
+      evidence: normalizeEvidence(analysis.evidence),
+      summary: String(analysis.summary ?? analysis.repository_overview ?? ''),
     },
   }
 }

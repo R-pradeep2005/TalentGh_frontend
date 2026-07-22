@@ -32,11 +32,24 @@ export interface ReviewFeedback {
   compliance_check: ComplianceCheck
 }
 
+export interface EvidenceItem {
+  file: string
+  reason: string
+}
+
+export interface SkillAnalysis {
+  score: number
+  matching_skills: string[]
+  missing_skills: string[]
+  strengths: string[]
+  weaknesses: string[]
+  evidence: EvidenceItem[]
+  summary: string
+}
+
 export interface AnalysisResult {
   repository: string
-  analysis: {
-    review_feedback: ReviewFeedback
-  }
+  analysis: SkillAnalysis
 }
 
 export type ProgressStageStatus = 'pending' | 'active' | 'complete'
