@@ -20,19 +20,29 @@ export class ApiError extends Error {
 }
 
 interface AnalyzeParams {
-  resume: File
-  jobDescription: File
+  jobDescription?: File
+  jobDescriptionText?: string
+  githubUsername?: string
   onUploadProgress?: (percent: number) => void
 }
 
 export async function analyzeCandidate({
-  resume,
   jobDescription,
+  jobDescriptionText,
+  githubUsername,
   onUploadProgress,
 }: AnalyzeParams): Promise<AnalyzeResponse> {
   const formData = new FormData()
-  formData.append('resume', resume)
-  formData.append('job_description', jobDescription)
+  
+  if (jobDescription) {
+    formData.append('job_description', jobDescription)
+  } else if (jobDescriptionText) {
+    formData.append('job_description_text', jobDescriptionText)
+  }
+  
+  if (githubUsername) {
+    formData.append('github_username', githubUsername)
+  }
 
   try {
     const { data } = await client.post<unknown>('/analyze', formData, {

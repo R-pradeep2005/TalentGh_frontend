@@ -1,25 +1,25 @@
 import { motion } from 'framer-motion'
 import { Loader2, Zap } from 'lucide-react'
-import FileUploader from './FileUploader'
+import TextInput from './TextInput'
 
 interface UploadCardProps {
-  resume: File | null
-  jobDescription: File | null
-  onResumeSelect: (file: File | null) => void
-  onJobDescriptionSelect: (file: File | null) => void
+  jobDescriptionText: string
+  onJobDescriptionTextChange: (text: string) => void
+  githubUsername: string
+  onGithubUsernameChange: (text: string) => void
   onAnalyze: () => void
   isAnalyzing: boolean
 }
 
 export default function UploadCard({
-  resume,
-  jobDescription,
-  onResumeSelect,
-  onJobDescriptionSelect,
+  jobDescriptionText,
+  onJobDescriptionTextChange,
+  githubUsername,
+  onGithubUsernameChange,
   onAnalyze,
   isAnalyzing,
 }: UploadCardProps) {
-  const canAnalyze = Boolean(resume && jobDescription) && !isAnalyzing
+  const canAnalyze = Boolean(jobDescriptionText && githubUsername) && !isAnalyzing
 
   return (
     <motion.div
@@ -32,26 +32,31 @@ export default function UploadCard({
       <div className="mb-8 text-center">
         <h2 className="text-2xl font-semibold text-white md:text-3xl">Start an evaluation</h2>
         <p className="mt-2 text-sm text-slate-400">
-          Upload a resume and the target job description to generate a candidate score.
+          Enter the job description and GitHub username to generate a candidate score.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <FileUploader
-          label="Resume"
-          description="The candidate's resume"
-          file={resume}
-          onFileSelect={onResumeSelect}
-          accentFrom="from-accent-cyan"
-          accentTo="to-accent-blue"
-        />
-        <FileUploader
+      <div className="space-y-6">
+        <TextInput
           label="Job Description"
           description="The role being hired for"
-          file={jobDescription}
-          onFileSelect={onJobDescriptionSelect}
+          value={jobDescriptionText}
+          onChange={onJobDescriptionTextChange}
+          placeholder="Paste or type the job description here..."
           accentFrom="from-accent-blue"
           accentTo="to-accent-purple"
+          icon="text"
+        />
+
+        <TextInput
+          label="GitHub Username"
+          description="The candidate's GitHub username"
+          value={githubUsername}
+          onChange={onGithubUsernameChange}
+          placeholder="e.g., johndoe"
+          accentFrom="from-accent-purple"
+          accentTo="to-accent-pink"
+          icon="github"
         />
       </div>
 

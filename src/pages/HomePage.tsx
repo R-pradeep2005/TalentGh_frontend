@@ -10,8 +10,8 @@ import ToastContainer from '../components/Toast'
 import AnalysisReportCard from '../components/AnalysisReportCard'
 
 export default function HomePage() {
-  const [resume, setResume] = useState<File | null>(null)
-  const [jobDescription, setJobDescription] = useState<File | null>(null)
+  const [jobDescriptionText, setJobDescriptionText] = useState('')
+  const [githubUsername, setGithubUsername] = useState('')
   const uploadSectionRef = useRef<HTMLDivElement>(null)
   const resultsRef = useRef<HTMLDivElement>(null)
 
@@ -41,14 +41,14 @@ export default function HomePage() {
   }
 
   async function handleAnalyze() {
-    if (!resume || !jobDescription) return
-    await run(resume, jobDescription)
+    if (!jobDescriptionText || !githubUsername) return
+    await run(undefined, jobDescriptionText, githubUsername)
   }
 
   function handleStartOver() {
     reset()
-    setResume(null)
-    setJobDescription(null)
+    setJobDescriptionText('')
+    setGithubUsername('')
     scrollToUpload()
   }
 
@@ -60,10 +60,10 @@ export default function HomePage() {
 
       <section id="analyze" ref={uploadSectionRef} className="px-6 py-10">
         <UploadCard
-          resume={resume}
-          jobDescription={jobDescription}
-          onResumeSelect={setResume}
-          onJobDescriptionSelect={setJobDescription}
+          jobDescriptionText={jobDescriptionText}
+          onJobDescriptionTextChange={setJobDescriptionText}
+          githubUsername={githubUsername}
+          onGithubUsernameChange={setGithubUsername}
           onAnalyze={handleAnalyze}
           isAnalyzing={isAnalyzing}
         />

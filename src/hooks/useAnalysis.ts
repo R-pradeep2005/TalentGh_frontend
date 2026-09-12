@@ -3,8 +3,7 @@ import { analyzeCandidate, ApiError } from '../services/api'
 import type { AnalysisResult, ProgressStage } from '../types'
 
 const STAGE_DEFS: Omit<ProgressStage, 'status'>[] = [
-  { id: 'resume', label: 'Resume Uploaded' },
-  { id: 'username', label: 'GitHub Username Extracted' },
+  { id: 'username', label: 'GitHub Username Received' },
   { id: 'repos', label: 'Repositories Retrieved' },
   { id: 'requirements', label: 'Extracting Job Requirements' },
   { id: 'ranking', label: 'Ranking Repositories' },
@@ -24,7 +23,7 @@ interface UseAnalysisReturn {
   stages: ProgressStage[]
   result: AnalysisResult | null
   error: string | null
-  run: (resume: File, jobDescription: File) => Promise<void>
+  run: (jobDescription?: File, jobDescriptionText?: string, githubUsername?: string) => Promise<void>
   reset: () => void
 }
 
@@ -58,7 +57,7 @@ export function useAnalysis(): UseAnalysisReturn {
   }, [])
 
   const run = useCallback(
-    async (resume: File, jobDescription: File) => {
+    async (jobDescription?: File, jobDescriptionText?: string, githubUsername?: string) => {
       clearTimers()
       setPhase('running')
       setError(null)
@@ -68,15 +67,19 @@ export function useAnalysis(): UseAnalysisReturn {
       // Simulated staged progression for stages that precede the network response.
       // Real repo retrieval / ranking / AI analysis happen server-side inside /analyze;
       // this timeline gives the recruiter visibility while that request is in flight.
-      const scheduled = [1, 2, 3, 4].map((stageIndex, i) =>
+      const scheduled = [0, 1, 2, 3].map((stageIndex, i) =>
         window.setTimeout(() => advanceStage(stageIndex), (i + 1) * 900),
       )
       timers.current = scheduled
 
       try {
-        const data = await analyzeCandidate({ resume, jobDescription })
+        const data = await analyzeCandidate({ 
+          jobDescription, 
+          jobDescriptionText,
+          githubUsername 
+        })
         clearTimers()
-        advanceStage(5)
+        advanceStage(4)
         window.setTimeout(() => {
           setStages((prev) => prev.map((s) => ({ ...s, status: 'complete' })))
           setResult(data)
