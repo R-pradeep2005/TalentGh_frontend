@@ -77,7 +77,7 @@ export default function Hero({ onAnalyzeClick }: HeroProps) {
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </button>
           <a
-            href="https://github.com/R-pradeep2005/TalentGH"
+            href="https://github.com/R-pradeep2005/TalentGH-Java-"
             target="_blank"
             rel="noreferrer"
             className="btn-secondary flex items-center gap-2"
